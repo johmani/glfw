@@ -1,11 +1,11 @@
-project "GLFW"
+project "glfw"
 	kind "SharedLib"
 	language "C"
 	staticruntime "off"
 	warnings "off"
 
 	targetdir (binOutputDir)
-    objdir (IntermediatesOutputDir)
+	objdir (IntermediatesOutputDir)
 
 	files
 	{
