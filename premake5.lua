@@ -1,10 +1,10 @@
 project "GLFW"
-	kind "StaticLib"
+	kind "SharedLib"
 	language "C"
 	staticruntime "off"
 	warnings "off"
 
-	targetdir (libOutputDir)
+	targetdir (binOutputDir)
     objdir (IntermediatesOutputDir)
 
 	files
@@ -25,6 +25,11 @@ project "GLFW"
 		"src/platform.c",
 		"src/vulkan.c",
 		"src/window.c",
+	}
+
+	defines
+	{
+		"_GLFW_BUILD_DLL"
 	}
 
 	filter "system:linux"
@@ -70,6 +75,7 @@ project "GLFW"
 			"src/egl_context.c"
 		}
 
+		
 		defines
 		{
 			"_GLFW_COCOA"
@@ -100,19 +106,19 @@ project "GLFW"
 
 	filter "configurations:Debug"
 		runtime "Debug"
-		symbols "on"
+		symbols "On"
 
 	filter { "system:windows", "configurations:Debug-AS" }	
 		runtime "Debug"
-		symbols "on"
+		symbols "On"
 		sanitize { "Address" }
 		flags { "NoRuntimeChecks", "NoIncrementalLink" }
 
 	filter "configurations:Release"
 		runtime "Release"
-		optimize "speed"
+		optimize "Size"
 
-    filter "configurations:Dist"
+	filter "configurations:Dist"
 		runtime "Release"
-		optimize "speed"
-        symbols "off"
+		optimize "Size"
+        symbols "Off"
