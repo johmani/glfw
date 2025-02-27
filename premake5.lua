@@ -25,6 +25,8 @@ project "glfw"
 		"src/platform.c",
 		"src/vulkan.c",
 		"src/window.c",
+
+		"*.lua",
 	}
 
 	defines
