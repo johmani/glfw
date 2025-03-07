@@ -35,6 +35,7 @@
 #include <assert.h>
 #include <windowsx.h>
 #include <shellapi.h>
+#include <uxtheme.h>
 
 // Returns the window style for the specified window
 //
@@ -1067,6 +1068,42 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             break;
         }
 
+        case  WM_NCCALCSIZE:
+        {
+            if (window->titlebar)
+                break;
+
+            if (wParam == TRUE && lParam != NULL)
+            {
+                NCCALCSIZE_PARAMS* pParams = (NCCALCSIZE_PARAMS*)lParam;
+               
+                if (GetWindowLong(hWnd, GWL_STYLE) & WS_MAXIMIZE)
+                {
+                    pParams->rgrc[0].top += 8;
+                    pParams->rgrc[0].right -= 8;
+                    pParams->rgrc[0].bottom -= 8;
+                    pParams->rgrc[0].left += 8;
+                }
+                else if (GetWindowLong(hWnd, GWL_STYLE) & WS_POPUP) // Fullscreen check
+                {
+                    pParams->rgrc[0].top = 0;
+                    pParams->rgrc[0].right = GetSystemMetrics(SM_CXSCREEN);
+                    pParams->rgrc[0].bottom = GetSystemMetrics(SM_CYSCREEN);
+                    pParams->rgrc[0].left = 0;
+                }
+                else
+                {
+                    pParams->rgrc[0].top += 1;
+                    pParams->rgrc[0].right -= 4;
+                    pParams->rgrc[0].bottom -= 4;
+                    pParams->rgrc[0].left += 4;
+                }
+            }
+            return 0;
+
+            break;
+        }
+
         case WM_SIZE:
         {
             const int width = LOWORD(lParam);
@@ -1108,6 +1145,45 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             window->win32.iconified = iconified;
             window->win32.maximized = maximized;
             return 0;
+        }
+
+        case WM_NCHITTEST:
+        {
+            if (window->titlebar)
+                break;
+
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+            ScreenToClient(hWnd, &pt);
+            RECT rc;
+            GetClientRect(hWnd, &rc);
+
+            int titlebarHittest = 0;
+            _glfwInputTitleBarHitTest(window, pt.x, pt.y, &titlebarHittest);
+
+            if (titlebarHittest)
+            {
+                return HTCAPTION;
+            }
+            else
+            {
+                enum { left = 1, top = 2, right = 4, bottom = 8 };
+                int hit = 0;
+                if (pt.x < 2)               hit |= left;
+                if (pt.x > rc.right - 2)    hit |= right;
+                if (pt.y < 2)               hit |= top;
+                if (pt.y > rc.bottom - 2)   hit |= bottom;
+
+                if (hit & top && hit & left)        return HTTOPLEFT;
+                if (hit & top && hit & right)       return HTTOPRIGHT;
+                if (hit & bottom && hit & left)     return HTBOTTOMLEFT;
+                if (hit & bottom && hit & right)    return HTBOTTOMRIGHT;
+                if (hit & left)                     return HTLEFT;
+                if (hit & top)                      return HTTOP;
+                if (hit & right)                    return HTRIGHT;
+                if (hit & bottom)                   return HTBOTTOM;
+
+                return HTCLIENT;
+            }
         }
 
         case WM_MOVE:
@@ -2052,6 +2128,11 @@ void _glfwSetWindowResizableWin32(_GLFWwindow* window, GLFWbool enabled)
 }
 
 void _glfwSetWindowDecoratedWin32(_GLFWwindow* window, GLFWbool enabled)
+{
+    updateWindowStyles(window);
+}
+
+void _glfwSetWindowTitlebarWin32(_GLFWwindow* window, GLFWbool enabled)
 {
     updateWindowStyles(window);
 }
