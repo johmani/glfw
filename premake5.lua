@@ -1,4 +1,5 @@
 project "glfw"
+	location (projectLocation)
 	kind "SharedLib"
 	language "C"
 	staticruntime "off"
