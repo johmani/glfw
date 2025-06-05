@@ -1075,34 +1075,33 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
             if (wParam == TRUE && lParam != NULL)
             {
-                NCCALCSIZE_PARAMS* pParams = (NCCALCSIZE_PARAMS*)lParam;
-               
-                if (GetWindowLong(hWnd, GWL_STYLE) & WS_MAXIMIZE)
+                #define SM_CXPADDEDBORDER       92
+                float dpi = GetDpiForWindow ? (float)GetDpiForWindow(hWnd) : 96.f;
+                int frameX = GetSystemMetricsForDpi ? GetSystemMetricsForDpi(SM_CXFRAME, dpi) : GetSystemMetrics(SM_CXFRAME);
+                int frameY = GetSystemMetricsForDpi ? GetSystemMetricsForDpi(SM_CYFRAME, dpi) : GetSystemMetrics(SM_CYFRAME);
+                int padding = GetSystemMetricsForDpi ? GetSystemMetricsForDpi(SM_CXPADDEDBORDER, dpi) : GetSystemMetrics(SM_CXPADDEDBORDER);
+                DWORD window_style = GetWindowLong(hWnd, GWL_STYLE);
+                bool isFullscreen = !(window_style & WS_OVERLAPPEDWINDOW);
+                if (!isFullscreen)
                 {
-                    pParams->rgrc[0].top += 8;
-                    pParams->rgrc[0].right -= 8;
-                    pParams->rgrc[0].bottom -= 8;
-                    pParams->rgrc[0].left += 8;
-                }
-                else if (GetWindowLong(hWnd, GWL_STYLE) & WS_POPUP) // Fullscreen check
-                {
-                    pParams->rgrc[0].top = 0;
-                    pParams->rgrc[0].right = GetSystemMetrics(SM_CXSCREEN);
-                    pParams->rgrc[0].bottom = GetSystemMetrics(SM_CYSCREEN);
-                    pParams->rgrc[0].left = 0;
-                }
-                else
-                {
-                    pParams->rgrc[0].top += 1;
-                    pParams->rgrc[0].right -= 4;
-                    pParams->rgrc[0].bottom -= 4;
-                    pParams->rgrc[0].left += 4;
-                }
-            }
-            return 0;
+                    RECT* rect = wParam == 0 ? (RECT*)lParam : ((NCCALCSIZE_PARAMS*)lParam)->rgrc;
+                    rect->right -= frameX + padding;
+                    rect->left += frameX + padding;
+                    rect->bottom -= frameY + padding;
 
-            break;
-        }
+                    if (IsMaximized(hWnd))
+                    {
+                        rect->top += frameY + padding;
+                    }
+                }
+                return 0;
+            }
+            else
+            {
+                break;
+            }
+
+        }break;
 
         case WM_SIZE:
         {
@@ -1152,38 +1151,62 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             if (window->titlebar)
                 break;
 
-            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-            ScreenToClient(hWnd, &pt);
-            RECT rc;
-            GetClientRect(hWnd, &rc);
+            DWORD window_style = GetWindowLong(hWnd, GWL_STYLE);
+            bool is_fullscreen = !(window_style & WS_OVERLAPPEDWINDOW);
+            if (is_fullscreen)
+                break;
 
-            int titlebarHittest = 0;
-            _glfwInputTitleBarHitTest(window, pt.x, pt.y, &titlebarHittest);
-
-            if (titlebarHittest)
+            bool useDefaultWindowProc = 0;
+            HRESULT result = DefWindowProc(hWnd, uMsg, wParam, lParam);
+            switch (result)
             {
-                return HTCAPTION;
-            }
-            else
+            case HTNOWHERE:
+            case HTRIGHT:
+            case HTLEFT:
+            case HTTOPLEFT:
+            case HTTOPRIGHT:
+            case HTBOTTOMRIGHT:
+            case HTBOTTOM:
+            case HTBOTTOMLEFT:
             {
-                enum { left = 1, top = 2, right = 4, bottom = 8 };
-                int hit = 0;
-                if (pt.x < 2)               hit |= left;
-                if (pt.x > rc.right - 2)    hit |= right;
-                if (pt.y < 2)               hit |= top;
-                if (pt.y > rc.bottom - 2)   hit |= bottom;
-
-                if (hit & top && hit & left)        return HTTOPLEFT;
-                if (hit & top && hit & right)       return HTTOPRIGHT;
-                if (hit & bottom && hit & left)     return HTBOTTOMLEFT;
-                if (hit & bottom && hit & right)    return HTBOTTOMRIGHT;
-                if (hit & left)                     return HTLEFT;
-                if (hit & top)                      return HTTOP;
-                if (hit & right)                    return HTRIGHT;
-                if (hit & bottom)                   return HTBOTTOM;
-
-                return HTCLIENT;
+                useDefaultWindowProc = true;
+            } break;
             }
+
+            if (!useDefaultWindowProc)
+            {
+                POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+                ScreenToClient(hWnd, &pt);
+                RECT rc;
+                GetClientRect(hWnd, &rc);
+               
+                int titlebarHittest = 0;
+                _glfwInputTitleBarHitTest(window, pt.x, pt.y, &titlebarHittest);
+
+                float dpi = GetDpiForWindow ? (float)GetDpiForWindow(hWnd) : 96.f;
+                int frameY = GetSystemMetricsForDpi ? GetSystemMetricsForDpi(SM_CYFRAME, dpi) : GetSystemMetrics(SM_CYFRAME);
+
+                if (IsMaximized(hWnd))
+                {
+                    if (titlebarHittest)
+                    {
+                        return HTCAPTION;
+                    }
+                }
+                else
+                {
+                    if (titlebarHittest && pt.y > frameY)
+                    {
+                        return HTCAPTION;
+                    }
+                    else if (pt.y <= frameY)
+                    {
+                        return HTTOP;
+                    }
+                }
+            }
+
+            break;
         }
 
         case WM_MOVE:
