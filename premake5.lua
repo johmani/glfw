@@ -4,10 +4,10 @@ project "glfw"
 	language "C"
 	staticruntime "off"
 	warnings "off"
-
+	implibdir "%{cfg.objdir}"
 	targetdir (binOutputDir)
 	objdir (IntermediatesOutputDir)
-
+	
 	files
 	{
 		"include/GLFW/glfw3.h",
