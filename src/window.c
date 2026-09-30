@@ -101,6 +101,12 @@ void _glfwInputTitleBarHitTest(_GLFWwindow* window, int posX, int posY, int* hit
         window->callbacks.tbhittest((GLFWwindow*)window, posX, posY, hit);
 }
 
+void _glfwWindowThemeChange(_GLFWwindow* window, GLFWbool light, unsigned int accent)
+{
+    if (window->callbacks.themechange)
+        window->callbacks.themechange((GLFWwindow*)window, light, accent);
+}
+
 // Notifies shared code that a window has been iconified or restored
 //
 void _glfwInputWindowIconify(_GLFWwindow* window, GLFWbool iconified)
@@ -1100,6 +1106,17 @@ GLFWAPI GLFWtitlebarhittestfun glfwSetTitlebarHitTestCallback(GLFWwindow* handle
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
     _GLFW_SWAP(GLFWtitlebarhittestfun,window->callbacks.tbhittest, tbhtfun);
     return tbhtfun;
+}
+
+GLFWAPI GLFWthemechangefun glfwSetThemeChangeCallback(GLFWwindow* handle, 
+                                                  GLFWthemechangefun cbfun)
+{
+    _GLFWwindow* window = (_GLFWwindow*)handle;
+    assert(window != NULL);
+
+    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW_SWAP(GLFWthemechangefun, window->callbacks.themechange, cbfun);
+    return cbfun;
 }
 
 GLFWAPI GLFWwindowsizefun glfwSetWindowSizeCallback(GLFWwindow* handle,

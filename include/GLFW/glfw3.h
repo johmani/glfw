@@ -1649,6 +1649,29 @@ typedef void (* GLFWwindowposfun)(GLFWwindow* window, int xpos, int ypos);
  */
 typedef void (*GLFWtitlebarhittestfun)(GLFWwindow*, int, int, int*);
 
+/*! @brief The function pointer type for system theme change callbacks.
+ *
+ *  This is the function pointer type for system theme change callbacks.  A
+ *  theme change callback function has the following signature:
+ *  @code
+ *  void function_name(GLFWwindow* window, int light, unsigned int accent)
+ *  @endcode
+ *
+ *  @param[in] window The window that received the event.
+ *  @param[in] light `GLFW_TRUE` if the system uses the light app theme, or
+ *  `GLFW_FALSE` if it uses the dark app theme.
+ *  @param[in] accent The system accent color, packed as `0xAABBGGRR` with red
+ *  in the lowest byte.
+ *
+ *  @sa @ref glfwSetThemeChangeCallback
+ *
+ *  @since Added in version 3.5.
+ *
+ *  @ingroup window
+ */
+typedef void (*GLFWthemechangefun)(GLFWwindow* window, int light, unsigned int accent);
+
+
 /*! @brief The function pointer type for window size callbacks.
  *
  *  This is the function pointer type for window size callbacks.  A window size
@@ -4302,6 +4325,30 @@ GLFWAPI GLFWwindowposfun glfwSetWindowPosCallback(GLFWwindow* window, GLFWwindow
  *  @ingroup window
  */
 GLFWAPI GLFWtitlebarhittestfun glfwSetTitlebarHitTestCallback(GLFWwindow* window, GLFWtitlebarhittestfun callback);
+
+/*! @brief Sets the system theme change callback.
+ *
+ *  This function sets the system theme change callback of the specified window,
+ *  which is called when the system app theme or accent color changes.
+ *
+ *  @param[in] window The window whose callback to set.
+ *  @param[in] callback The new callback, or `NULL` to remove the currently set
+ *  callback.
+ *  @return The previously set callback, or `NULL` if no callback was set or the
+ *  library had not been [initialized](@ref intro_init).
+ *
+ *  @errors Possible errors include @ref GLFW_NOT_INITIALIZED.
+ *
+ *  @remark @win32 This is currently the only platform that generates this
+ *  event.
+ *
+ *  @thread_safety This function must only be called from the main thread.
+ *
+ *  @since Added in version 3.5.
+ *
+ *  @ingroup window
+ */
+GLFWAPI GLFWthemechangefun glfwSetThemeChangeCallback(GLFWwindow* window, GLFWthemechangefun callback);
 
 /*! @brief Sets the size callback for the specified window.
  *

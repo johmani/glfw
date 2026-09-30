@@ -316,6 +316,10 @@ typedef HRESULT (WINAPI * PFN_GetDpiForMonitor)(HMONITOR,MONITOR_DPI_TYPE,UINT*,
 typedef LONG (WINAPI * PFN_RtlVerifyVersionInfo)(OSVERSIONINFOEXW*,ULONG,ULONGLONG);
 #define RtlVerifyVersionInfo _glfw.win32.ntdll.RtlVerifyVersionInfo_
 
+// uxtheme function pointer typedefs
+typedef BOOL(WINAPI* PFN_ShouldAppsUseDarkMode)(void);
+#define ShouldAppsUseDarkMode _glfw.win32.uxtheme.ShouldAppsUseDarkMode_
+
 // WGL extension pointer typedefs
 typedef BOOL (WINAPI * PFNWGLSWAPINTERVALEXTPROC)(int);
 typedef BOOL (WINAPI * PFNWGLGETPIXELFORMATATTRIBIVARBPROC)(HDC,int,int,UINT,const int*,int*);
@@ -510,6 +514,11 @@ typedef struct _GLFWlibraryWin32
         HINSTANCE                       instance;
         PFN_RtlVerifyVersionInfo        RtlVerifyVersionInfo_;
     } ntdll;
+
+    struct {
+        HINSTANCE instance;
+        PFN_ShouldAppsUseDarkMode ShouldAppsUseDarkMode_;
+    } uxtheme;
 } _GLFWlibraryWin32;
 
 // Win32-specific per-monitor data
@@ -580,6 +589,7 @@ GLFWbool _glfwFramebufferTransparentWin32(_GLFWwindow* window);
 void _glfwSetWindowResizableWin32(_GLFWwindow* window, GLFWbool enabled);
 void _glfwSetWindowDecoratedWin32(_GLFWwindow* window, GLFWbool enabled);
 void _glfwSetWindowTitlebarWin32(_GLFWwindow* window, GLFWbool enabled);
+void _glfwWindowThemeChangeWin32(_GLFWwindow* window);
 void _glfwSetWindowFloatingWin32(_GLFWwindow* window, GLFWbool enabled);
 void _glfwSetWindowMousePassthroughWin32(_GLFWwindow* window, GLFWbool enabled);
 float _glfwGetWindowOpacityWin32(_GLFWwindow* window);

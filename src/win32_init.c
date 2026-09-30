@@ -167,6 +167,13 @@ static GLFWbool loadLibraries(void)
             _glfwPlatformGetModuleSymbol(_glfw.win32.ntdll.instance, "RtlVerifyVersionInfo");
     }
 
+    _glfw.win32.uxtheme.instance = _glfwPlatformLoadModule("uxtheme.dll");
+    if (_glfw.win32.uxtheme.instance)
+    {
+        _glfw.win32.uxtheme.ShouldAppsUseDarkMode_ = (PFN_ShouldAppsUseDarkMode)
+            _glfwPlatformGetModuleSymbol(_glfw.win32.uxtheme.instance, MAKEINTRESOURCEA(132));
+    }
+
     return GLFW_TRUE;
 }
 
@@ -708,6 +715,7 @@ GLFWbool _glfwConnectWin32(int platformID, _GLFWplatform* platform)
         .setWindowResizable = _glfwSetWindowResizableWin32,
         .setWindowDecorated = _glfwSetWindowDecoratedWin32,
         .setWindowTitlebar = _glfwSetWindowTitlebarWin32,
+        .setWindowThemeChange = _glfwWindowThemeChangeWin32,
         .setWindowFloating = _glfwSetWindowFloatingWin32,
         .setWindowOpacity = _glfwSetWindowOpacityWin32,
         .setWindowMousePassthrough = _glfwSetWindowMousePassthroughWin32,

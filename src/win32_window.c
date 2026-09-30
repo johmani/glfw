@@ -1100,9 +1100,14 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             {
                 break;
             }
-
-        }break;
-
+            break;
+        }
+        case WM_SETTINGCHANGE:
+        {
+            if (lParam && wcscmp((LPCWSTR)lParam, L"ImmersiveColorSet") == 0)
+                _glfwWindowThemeChangeWin32(window);
+            break;
+        }
         case WM_SIZE:
         {
             const int width = LOWORD(lParam);
@@ -1312,6 +1317,9 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
         {
             if (window->win32.transparent)
                 updateFramebufferTransparency(window);
+
+            _glfwWindowThemeChangeWin32(window);
+
             return 0;
         }
 
@@ -2158,6 +2166,27 @@ void _glfwSetWindowDecoratedWin32(_GLFWwindow* window, GLFWbool enabled)
 void _glfwSetWindowTitlebarWin32(_GLFWwindow* window, GLFWbool enabled)
 {
     updateWindowStyles(window);
+}
+
+void _glfwWindowThemeChangeWin32(_GLFWwindow* window)
+{
+    if (!window->callbacks.themechange)
+        return;
+
+    GLFWbool light = GLFW_TRUE;
+    if (ShouldAppsUseDarkMode)
+        light = !ShouldAppsUseDarkMode();
+
+    DWORD argb = 0;
+    BOOL opaque = FALSE;
+    if (DwmGetColorizationColor)
+        DwmGetColorizationColor(&argb, &opaque);
+
+    _glfwWindowThemeChange(
+        window,
+        light,
+        (argb & 0xFF00FF00) | ((argb >> 16) & 0xFF) | ((argb & 0xFF) << 16)
+    );
 }
 
 void _glfwSetWindowFloatingWin32(_GLFWwindow* window, GLFWbool enabled)
