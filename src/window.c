@@ -1098,14 +1098,15 @@ GLFWAPI GLFWwindowposfun glfwSetWindowPosCallback(GLFWwindow* handle,
     return cbfun;
 }
 
-GLFWAPI GLFWtitlebarhittestfun glfwSetTitlebarHitTestCallback(GLFWwindow* handle, GLFWtitlebarhittestfun tbhtfun)
+GLFWAPI GLFWtitlebarhittestfun glfwSetTitlebarHitTestCallback(GLFWwindow* handle, 
+                                                  GLFWtitlebarhittestfun cbfun)
 {
     _GLFWwindow* window = (_GLFWwindow*)handle;
     assert(window != NULL);
 
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWtitlebarhittestfun,window->callbacks.tbhittest, tbhtfun);
-    return tbhtfun;
+    _GLFW_SWAP(GLFWtitlebarhittestfun,window->callbacks.tbhittest, cbfun);
+    return cbfun;
 }
 
 GLFWAPI GLFWthemechangefun glfwSetThemeChangeCallback(GLFWwindow* handle, 
