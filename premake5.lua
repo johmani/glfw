@@ -1,12 +1,16 @@
 project "glfw"
-	location (projectLocation)
-	kind "SharedLib"
 	language "C"
-	staticruntime "off"
 	warnings "off"
 	implibdir "%{cfg.objdir}"
-	targetdir (binOutputDir)
 	objdir (IntermediatesOutputDir)
+
+	ProjectKind("SharedLib")
+    filter "kind:SharedLib"
+        targetdir (binOutputDir)
+		defines { "_GLFW_BUILD_DLL" }
+    filter "kind:StaticLib"
+        targetdir (libOutputDir)
+    filter {}
 	
 	files
 	{
@@ -28,11 +32,6 @@ project "glfw"
 		"src/window.c",
 
 		"*.lua",
-	}
-
-	defines
-	{
-		"_GLFW_BUILD_DLL"
 	}
 
 	filter "system:linux"
@@ -107,21 +106,14 @@ project "glfw"
 			"_CRT_SECURE_NO_WARNINGS"
 		}
 
-	filter "configurations:Debug"
-		runtime "Debug"
-		symbols "On"
+    filter "configurations:Debug"
+        runtime "Debug"
+        symbols "On"
 
-	filter { "system:windows", "configurations:Debug-AS" }	
-		runtime "Debug"
-		symbols "On"
-		sanitize { "Address" }
-		flags { "NoRuntimeChecks", "NoIncrementalLink" }
+    filter "configurations:Release"
+        runtime "Release"
+        symbols "On"
 
-	filter "configurations:Release"
-		runtime "Release"
-		optimize "Size"
-
-	filter "configurations:Dist"
-		runtime "Release"
-		optimize "Size"
+    filter "configurations:Dist"
+        runtime "Release"
         symbols "Off"
